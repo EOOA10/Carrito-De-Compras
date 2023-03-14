@@ -15,6 +15,7 @@ namespace CapaDatos
 {
     public class CD_Usuarios
     {
+        //Metodo para leer y mostrar los usuarios que se encuentran en la base de datos
         public List<Usuario> Listar() 
         {
             List<Usuario> lista= new List<Usuario>();
@@ -57,6 +58,117 @@ namespace CapaDatos
             }
 
             return lista;
+        }
+
+        //Metodo para crear un nuevo usuario en la BDD por medio de procedimiento almacenado
+        public int Registrar(Usuario obj, out string Mensaje)
+        {
+            int idautogenerado = 0;
+            Mensaje = string.Empty;
+
+            try
+            {
+                using(SqlConnection oconexion = new SqlConnection(Conexion.cn))
+                {
+                    SqlCommand cmd = new SqlCommand("sp_RegistrarUsuario", oconexion);
+                    //Llamado al procedimiento almacenado
+
+                    cmd.Parameters.AddWithValue("Nombre", obj.Nombre);
+                    cmd.Parameters.AddWithValue("Apellido", obj.Apellido);
+                    cmd.Parameters.AddWithValue("Correo", obj.Correo);
+                    cmd.Parameters.AddWithValue("Clave", obj.Clave);
+                    cmd.Parameters.AddWithValue("Activo", obj.Activo);
+                    //Parametros de entrada
+
+                    cmd.Parameters.Add("Resultado", SqlDbType.Int).Direction = ParameterDirection.Output;
+                    cmd.Parameters.Add("Mensaje", SqlDbType.VarChar, 500).Direction = ParameterDirection.Output;
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    //Parametros de salida
+
+                    oconexion.Open();
+
+                    cmd.ExecuteNonQuery();
+
+                    idautogenerado = Convert.ToInt32(cmd.Parameters["Resultado"].Value);
+                    Mensaje = cmd.Parameters["Mensaje"].Value.ToString();
+                }
+            }
+            catch(Exception ex) 
+            {
+                idautogenerado = 0;
+                Mensaje = ex.Message;
+            }
+
+            return idautogenerado;
+        }
+
+        //Metodo para editar un usuario en la BDD por medio de procedimiento almacenado
+        public bool Editar(Usuario obj, out string Mensaje)
+        {
+            bool resultado = false;
+            Mensaje = string.Empty;
+
+            try
+            {
+                using (SqlConnection oconexion = new SqlConnection(Conexion.cn))
+                {
+                    SqlCommand cmd = new SqlCommand("sp_EditarUsuario", oconexion);
+                    //Llamado al procedimiento almacenado
+
+                    cmd.Parameters.AddWithValue("IdUsuario", obj.IdUsuario);
+                    cmd.Parameters.AddWithValue("Nombre", obj.Nombre);
+                    cmd.Parameters.AddWithValue("Apellido", obj.Apellido);
+                    cmd.Parameters.AddWithValue("Correo", obj.Correo);
+                    cmd.Parameters.AddWithValue("Activo", obj.Activo);
+                    //Parametros de entrada
+
+                    cmd.Parameters.Add("Resultado", SqlDbType.Int).Direction = ParameterDirection.Output;
+                    cmd.Parameters.Add("Mensaje", SqlDbType.VarChar, 500).Direction = ParameterDirection.Output;
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    //Parametros de salida
+
+                    oconexion.Open();
+
+                    cmd.ExecuteNonQuery();
+
+                    resultado = Convert.ToBoolean(cmd.Parameters["Resultado"].Value);
+                    Mensaje = cmd.Parameters["Mensaje"].Value.ToString();
+                }
+            }
+            catch(Exception ex) 
+            {
+                resultado = false;
+                Mensaje = ex.Message;
+            }
+
+            return resultado;
+        }
+
+        //Metodo para Eliminar un usuario en la BDD
+        public bool Eliminar(int id, out string Mensaje)
+        {
+            bool resultado = false;
+            Mensaje = string.Empty;
+
+            try
+            {
+                using (SqlConnection oconexion = new SqlConnection(Conexion.cn))
+                {
+                    SqlCommand cmd = new SqlCommand("delete top (1) from USUARIO where IdUsuario = @id", oconexion);
+                    cmd.Parameters.AddWithValue("@id", id);
+                    cmd.CommandType = CommandType.Text;
+
+                    oconexion.Open();
+                    resultado = cmd.ExecuteNonQuery() > 0 ? true : false;
+                }
+            }
+            catch (Exception ex)
+            {
+                resultado = false;
+                Mensaje = ex.Message;
+            }
+
+            return resultado;
         }
     }
 }

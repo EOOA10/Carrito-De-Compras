@@ -1,5 +1,5 @@
 SELECT * FROM USUARIO
-INSERT INTO USUARIO(Nombre, Apellido, Correo, Clave) VALUES ('Admin', 'Admin', 'edisonomarordonez@gmail.com', 'e7845bfeb552c3344cdf8b55cdf45bed8b5afaf91d561ca5cafc6ecce8f57a76')
+INSERT INTO USUARIO(Nombre, Apellido, Correo, Clave) VALUES ('Admin2', 'Admin2', 'admin2@gmail.com', '3b612c75a7b5048a435fb6ec81e52ff92d6d795a8b5a9c17070f6a63c97a53b2')
 
 SELECT * FROM CATEGORIA
 INSERT INTO CATEGORIA(Descripcion) VALUES

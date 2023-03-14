@@ -17,7 +17,7 @@
     <div class="card-body">
         <div class="row">
             <div class="col-12">
-                <button type="button" class="btn btn-outline-success">Crear Nuevo Usuario</button>
+                <button type="button" class="btn btn-outline-success" onclick="abrirModal(null)">Crear Nuevo Usuario</button>
                 <hr />
                 <table id="tabla" class="display cell-border" style="width:100%">
                     <thead>
@@ -30,7 +30,6 @@
                         </tr>
                     </thead>
                     <tbody>
-                        
                     </tbody>
                 </table>
             </div>
@@ -38,22 +37,59 @@
     </div>
 </div>
 
-<!--Uso de metodo Ajax, jQuery-->
+<!-- Modal -->
+<!--Formulario para poder ingresar un nuevo usuario-->>
+<div class="modal fade" id="FormModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-black text-white">
+                <h5 class="modal-title" id="exampleModalLabel">Nuevo Usuario</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body g-2">
+                
+                <input id="txtIdUsuario" type="text" value="0">
+
+                <div class="row">
+                    <div class="col-sm-6">
+                        <label for="txtnombre" class="form-label">Nombre</label>
+                        <input type="text" class="form-control" id="txtnombre">
+                    </div>
+
+                    <div class="col-sm-6">
+                        <label for="txtapellido" class="form-label">Apellido</label>
+                        <input type="text" class="form-control" id="txtapellido">
+                    </div>
+
+                    <div class="col-sm-6">
+                        <label for="txtcorreo" class="form-label">Correo</label>
+                        <input type="email" class="form-control" id="txtcorreo" placeholder="name@example.com">
+                    </div>
+
+                    <div class="col-sm-6">
+                        <label for="cboactivo" class="form-label">Activo</label>
+                        <select id="cboactivo" class="form-select">
+                            <option value="1">Si</option>
+                            <option value="0">No</option>
+                        </select>
+                    </div>
+
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-primary" onclick="Guardar()">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section scripts{
     <script>
         var tabladata;
+        var filaSeleccionada;
 
-        jQuery.ajax({
-            url: '@Url.Action("ListarUsuarios", "Home")',
-            type: "GET",
-            dataType: "json",
-            contentType: "application/json; charset=utf-8",
-            success: function (data) {
-                //debugger;
-                console.log(data);
-            }
-        })
-
+        //Recogiendo la DATA de la BDD y Mostrar los datos dentro de la tabla HTML
         tabladata = $("#tabla").DataTable({
             responsive: true,
             ordering: false,
@@ -62,30 +98,91 @@
                 type: "GET",
                 dataType: "json"
             },
-            "columns": [
-                { "data": "Nombre" },
-                { "data": "Apellido" },
-                { "data": "Correo" },
-                {
-                    "data": "Activo", "render": function (valor)
+            "columns":
+                [
+                    { "data": "Nombre" },
+                    { "data": "Apellido" },
+                    { "data": "Correo" },
                     {
-                        if (valor) {
-                            return '<span class="badge bg-success">Si</span>'
+                        "data": "Activo", "render": function (valor)
+                        {
+                            if (valor) {
+                                return '<span class="badge bg-success">Si</span>'
+                            }
+                            else {
+                                return '<span class="badge bg-danger">No</span>'
+                            }
                         }
-                        else {
-                            return '<span class="badge bg-danger">No</span>'
-                        }
-                    }
-                },
-                {
-                    "defaultContent": '<button type="button" class="btn btn-outline-primary btn-sm"><i class="fas fa-pen"></i></button>' +
-                        '<button type="button" class="btn btn-outline-danger btn-sm ms-2"><i class="fas fa-trash"></i></button>',
-                    "orderable": false,
-                    "searchable": false,
-                    "width": "90px"
+                    },
+                    {
+                        "defaultContent": '<button type="button" class="btn btn-outline-primary btn-sm btn-editar"><i class="fas fa-pen"></i></button>' +
+                            '<button type="button" class="btn btn-outline-danger btn-sm ms-2"><i class="fas fa-trash"></i></button>',
+                        "orderable": false,
+                        "searchable": false,
+                        "width": "90px"
 
-                    }
-                ]
+                        }
+                ],
+            "language": {
+                "url":"https://cdn.datatables.net/plug-ins/1.13.2/i18n/es-ES.json"
+            }
         });
+
+        //Abrir formulario para poder ingresar un nuevo usuario
+        function abrirModal(json)
+        {
+            //Limpia los campos al momento de crear el usuario
+            $("#txtIdUsuario").val(0);
+            $("#txtnombre").val("");
+            $("#txtapellido").val("");
+            $("#txtcorreo").val("");
+            $("#cboactivo").val(1);
+
+            //Recoge los datos para mostrarlos en el modal
+            if (json != null)
+            {
+                $("#txtIdUsuario").val(json.IdUsuario);
+                $("#txtnombre").val(json.Nombre);
+                $("#txtapellido").val(json.Apellido);
+                $("#txtcorreo").val(json.Correo);
+                $("#cboactivo").val(json.Activo == true ? 1 : 0);
+            }
+
+            $("#FormModal").modal("show");
+        }
+
+        //Abrir formulario para modificar un usuario, mostrando los datos del usuario dentro del modal
+        $("#tabla tbody").on("click", '.btn-editar', function () {
+            filaSeleccionada = $(this).closest("tr");
+            //Selecciona la fila
+
+            var data = tabladata.row(filaSeleccionada).data();
+            //Obtiene los datos de la fila seleccionada
+
+            console.log(data);
+            abrirModal(data);
+            //Muestra los datos dentro del modal para poder modificar los datos
+        })
+
+        //METODO GUARDAR
+        function Guardar()
+        {
+            var Usuario = {
+                IdUsuario: $("#txtIdUsuario").val(),
+                Nombre: $("#txtnombre").val(),
+                Apellido: $("#txtapellido").val(),
+                Correo: $("#txtcorreo").val(),
+                Activo: $("#cboactivo").val() == 1 ? true : false
+            }
+
+            if (Usuario.IdUsuario == 0) {
+                tabladata.row.add(Usuario).draw(false);
+            }
+            else {
+                tabladata.row(filaSeleccionada).data(Usuario).draw(false);
+            }
+
+            $("#FormModal").modal("hide");
+        }
     </script>
-    }
+}
